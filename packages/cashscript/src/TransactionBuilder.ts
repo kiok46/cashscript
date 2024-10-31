@@ -18,6 +18,11 @@ import {
   validateOutput,
 } from './utils.js';
 import { FailedTransactionError } from './Errors.js';
+import { DebugResult, debugTemplate } from './debugging.js';
+import { getBitauthUri } from './LibauthTemplate.js';
+import { buildTemplate } from './LibauthTemplate.js';
+import { Transaction } from './Transaction.js';
+import { encodeFunctionArguments } from './Argument.js';
 
 export interface TransactionBuilderOptions {
   provider: NetworkProvider;
@@ -142,6 +147,45 @@ export class TransactionBuilder {
 
     return binToHex(encodeTransaction(transaction));
   }
+
+  // method to debug the transaction with libauth VM, throws upon evaluation error
+  async debug(): Promise<DebugResult | any> {
+    console.log('debugging transaction builder', this);
+
+    for (const input of this.inputs) {
+      const contract = input.options?.contract;
+      if (!contract) {
+        throw new Error('No contract found in input options');
+      }
+      console.log(input.unlocker);
+
+      const encodedArgs = encodeFunctionArguments(contract.artifact.abi[0], input.options?.params ?? []);
+
+      // const functionName = Object.keys(contract.functions)[0];
+      // const functionDetails = contract.functions[functionName];
+      // const transaction = functionDetails(...(input.options?.params ?? []));
+      // console.log('transaction', transaction);
+
+      // if (!contract.artifact.debug) {
+      //   console.warn('No debug information found in artifact. Recompile with cashc version 0.10.0 or newer to get better debugging information.');
+      // }
+
+      const txn = new Transaction(contract, input.unlocker, contract.artifact.abi[0], encodedArgs, 0);
+      txn.outputs = this.outputs;
+
+      const template = await buildTemplate({ transaction: txn });
+      return debugTemplate(template, contract.artifact);
+    }
+  }
+
+  // async bitauthUri(): Promise<string> {
+  //   const template = await this.getLibauthTemplate();
+  //   return getBitauthUri(template);
+  // }
+
+  // async getLibauthTemplate(): Promise<any> {
+  //   return buildTemplate({ transaction: this });
+  // }
 
   // TODO: see if we can merge with Transaction.ts
   async send(): Promise<TransactionDetails>;

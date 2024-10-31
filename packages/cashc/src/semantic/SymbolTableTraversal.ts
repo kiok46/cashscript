@@ -91,7 +91,10 @@ export default class SymbolTableTraversal extends AstTraversal {
 
     const unusedSymbols = node.symbolTable.unusedSymbols();
     if (unusedSymbols.length !== 0) {
-      throw new UnusedVariableError(unusedSymbols[0]);
+      unusedSymbols.forEach((symbol) => {
+        console.warn(`[Warning] Unused variable: ${symbol.name} in block`);
+      });
+      // throw new UnusedVariableError(unusedSymbols[0]);
     }
 
     this.symbolTables.shift();
