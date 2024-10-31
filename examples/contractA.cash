@@ -1,0 +1,10 @@
+pragma cashscript ^0.10.0;
+
+contract ContractA(bytes20 pkh) {
+    // Require pk to match stored pkh and signature to match
+    function execute(pubkey pk, sig s) {
+        int x = 5;  // Unused variable
+        require(hash160(pk) == pkh);
+        require(checkSig(s, pk));
+    }
+}

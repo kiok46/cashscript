@@ -22,6 +22,7 @@ export interface InputOptions {
   sequence?: number;
   contract?: Contract;
   params?: any[];
+  selector?: number;
 }
 
 export interface GenerateUnlockingBytecodeOptions {

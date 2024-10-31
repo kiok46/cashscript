@@ -1,0 +1,18 @@
+pragma cashscript ^0.10.0;
+
+contract ContractB(bytes20 pkh) {
+    function dummyFuncA() {
+        int d = 0;
+        require(2==2);
+    }
+    
+    function dummyFuncB() {
+        require(2==2);
+    }
+
+    function trigger(pubkey pk, sig s) {
+        int m = 1;
+        require(hash160(pk) == pkh);
+        require(checkSig(s, pk));
+    }
+}

@@ -1,5 +1,6 @@
 import {
   binToHex, decodeTransaction, encodeTransaction, hexToBin, Transaction as LibauthTransaction,
+  WalletTemplate,
 } from '@bitauth/libauth';
 import delay from 'delay';
 import {
@@ -149,43 +150,44 @@ export class TransactionBuilder {
   }
 
   // method to debug the transaction with libauth VM, throws upon evaluation error
-  async debug(): Promise<DebugResult | any> {
-    console.log('debugging transaction builder', this);
+  async debug(): Promise<DebugResult[]> {
+    return (await this.getLibauthTemplates()).map(({ debugResult }) => debugResult);  
+  }
+
+  async bitauthUri(): Promise<string[]> {
+    const results = await this.getLibauthTemplates();
+    return results.map(({ template }) => getBitauthUri(template));
+  }
+
+  async getLibauthTemplates(): Promise<{ template: WalletTemplate, debugResult: DebugResult }[]> {
+    const templates: { template: WalletTemplate, debugResult: DebugResult }[] = [];
 
     for (const input of this.inputs) {
       const contract = input.options?.contract;
-      if (!contract) {
-        throw new Error('No contract found in input options');
-      }
-      console.log(input.unlocker);
+      if (!contract) continue;
 
-      const encodedArgs = encodeFunctionArguments(contract.artifact.abi[0], input.options?.params ?? []);
 
-      // const functionName = Object.keys(contract.functions)[0];
-      // const functionDetails = contract.functions[functionName];
-      // const transaction = functionDetails(...(input.options?.params ?? []));
-      // console.log('transaction', transaction);
 
-      // if (!contract.artifact.debug) {
-      //   console.warn('No debug information found in artifact. Recompile with cashc version 0.10.0 or newer to get better debugging information.');
-      // }
+      const encodedArgs = encodeFunctionArguments(
+        contract.artifact.abi[input.options?.selector ?? 0],
+        input.options?.params ?? [],
+      );
 
-      const txn = new Transaction(contract, input.unlocker, contract.artifact.abi[0], encodedArgs, 0);
+      const txn = new Transaction(
+        contract,
+        input.unlocker,
+        contract.artifact.abi[input.options?.selector ?? 0],
+        encodedArgs,
+        input.options?.selector,
+      );
       txn.outputs = this.outputs;
 
       const template = await buildTemplate({ transaction: txn });
-      return debugTemplate(template, contract.artifact);
+      templates.push({ template, debugResult: debugTemplate(template, contract.artifact) });
     }
+
+    return templates;
   }
-
-  // async bitauthUri(): Promise<string> {
-  //   const template = await this.getLibauthTemplate();
-  //   return getBitauthUri(template);
-  // }
-
-  // async getLibauthTemplate(): Promise<any> {
-  //   return buildTemplate({ transaction: this });
-  // }
 
   // TODO: see if we can merge with Transaction.ts
   async send(): Promise<TransactionDetails>;
