@@ -12,6 +12,7 @@ contract ContractB(bytes20 pkh) {
 
     function trigger(pubkey pk, sig s) {
         int m = 1;
+        console.log("ContractB 'trigger' function called.");
         require(hash160(pk) == pkh);
         require(checkSig(s, pk));
     }

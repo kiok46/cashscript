@@ -166,8 +166,6 @@ export class TransactionBuilder {
       const contract = input.options?.contract;
       if (!contract) continue;
 
-
-
       const encodedArgs = encodeFunctionArguments(
         contract.artifact.abi[input.options?.selector ?? 0],
         input.options?.params ?? [],

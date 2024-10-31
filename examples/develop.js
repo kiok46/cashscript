@@ -28,11 +28,11 @@ const contractB = new Contract(artifactB, [alicePkh], { provider });
 provider.addUtxo(contractB.address, randomUtxo());
 provider.addUtxo(contractB.address, randomUtxo());
 // Get contract balance & output address + balance
-console.log('contract address:', contractA.address);
-console.log('contract balance:', await contractA.getBalance());
+// console.log('contract address:', contractA.address);
+// console.log('contract balance:', await contractA.getBalance());
 
 const contractUtxos = await contractA.getUtxos();
-console.log('contract utxos:', contractUtxos);
+// console.log('contract utxos:', contractUtxos);
 
 // console.log(contract.unlock)
 
